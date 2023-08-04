@@ -45,3 +45,8 @@ ServerScope é uma ferramenta de monitoramento em tempo real que exibe o uso de 
 3. Execute o container:
    ```bash
    docker run -it servercope
+
+## Rodando a aplicação
+Após rodar sua aplicação, seja usando Go ou Docker, deve ser exibido o painel de informações do servido, como mostra a imagem abaixo:
+
+![image](https://github.com/rauzerfabiano/ServerScope/assets/60713792/8857de06-47c8-4f7e-a35e-f8b15a1cd9ba)
