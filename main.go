@@ -10,28 +10,50 @@ import (
 	"github.com/shirou/gopsutil/net"
 )
 
-func getServerStats() {
-	// CPU
-	cpuPercent, _ := cpu.Percent(time.Second, false)
-	fmt.Printf("CPU usage: %.2f%%\n", cpuPercent[0])
+type ServerStats struct {
+	Time          time.Time
+	CPUPercent    float64
+	MemoryPercent float64
+	DiskPercent   float64
+	BytesSent     uint64
+	BytesRecv     uint64
+}
 
-	// Memory
+var serverStatsHistory []ServerStats
+const maxHistorySize = 60 // Mantendo os últimos 60 pontos de dados
+
+func getServerStats() ServerStats {
+	stats := ServerStats{}
+	stats.Time = time.Now()
+
+	cpuPercent, _ := cpu.Percent(time.Millisecond*200, false)
+	stats.CPUPercent = cpuPercent[0]
+
 	memory, _ := mem.VirtualMemory()
-	fmt.Printf("Memory usage: %.2f%%\n", memory.UsedPercent)
+	stats.MemoryPercent = memory.UsedPercent
 
-	// Disk
 	diskUsage, _ := disk.Usage("/")
-	fmt.Printf("Disk usage: %.2f%%\n", diskUsage.UsedPercent)
+	stats.DiskPercent = diskUsage.UsedPercent
 
-	// Network
 	network, _ := net.IOCounters(false)
-	fmt.Printf("Network sent: %v bytes\n", network[0].BytesSent)
-	fmt.Printf("Network received: %v bytes\n", network[0].BytesRecv)
+	stats.BytesSent = network[0].BytesSent
+	stats.BytesRecv = network[0].BytesRecv
+
+	return stats
+}
+
+func storeStats(stats ServerStats) {
+	serverStatsHistory = append(serverStatsHistory, stats)
+	if len(serverStatsHistory) > maxHistorySize {
+		serverStatsHistory = serverStatsHistory[1:]
+	}
 }
 
 func main() {
 	for {
-		getServerStats()
+		stats := getServerStats()
+		storeStats(stats)
+		fmt.Printf("Server Stats: %+v\n", stats)
 		time.Sleep(time.Second)
 	}
 }
