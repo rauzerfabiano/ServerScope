@@ -8,6 +8,8 @@ import (
 	"github.com/shirou/gopsutil/disk"
 	"github.com/shirou/gopsutil/mem"
 	"github.com/shirou/gopsutil/net"
+	"github.com/gizak/termui/v3"
+	"github.com/gizak/termui/v3/widgets"
 )
 
 type ServerStats struct {
@@ -49,11 +51,43 @@ func storeStats(stats ServerStats) {
 	}
 }
 
-func main() {
-	for {
-		stats := getServerStats()
-		storeStats(stats)
-		fmt.Printf("Server Stats: %+v\n", stats)
-		time.Sleep(time.Second)
+func drawDashboard() {
+	if err := termui.Init(); err != nil {
+		fmt.Printf("Failed to initialize termui: %v", err)
+		return
 	}
+	defer termui.Close()
+
+	cpuGauge := widgets.NewGauge()
+	memoryGauge := widgets.NewGauge()
+	diskGauge := widgets.NewGauge()
+	cpuGauge.Title = "CPU Usage"
+	memoryGauge.Title = "Memory Usage"
+	diskGauge.Title = "Disk Usage"
+	cpuGauge.SetRect(0, 0, 50, 5)
+	memoryGauge.SetRect(0, 5, 50, 10)
+	diskGauge.SetRect(0, 10, 50, 15)
+
+	uiEvents := termui.PollEvents()
+	ticker := time.NewTicker(time.Second).C
+	for {
+		select {
+		case e := <-uiEvents:
+			switch e.ID {
+			case "q", "<C-c>":
+				return
+			}
+		case <-ticker:
+			stats := getServerStats()
+			storeStats(stats)
+			cpuGauge.Percent = int(stats.CPUPercent)
+			memoryGauge.Percent = int(stats.MemoryPercent)
+			diskGauge.Percent = int(stats.DiskPercent)
+			termui.Render(cpuGauge, memoryGauge, diskGauge)
+		}
+	}
+}
+
+func main() {
+	drawDashboard()
 }
