@@ -5,7 +5,7 @@ ServerScope é uma ferramenta de monitoramento em tempo real que exibe o uso de 
 ## Requisitos
 
 - Go 1.17 ou superior
-- Docker (opcional para execução em contêiner)
+- Docker (opcional para execução em container)
 
 ## Instalação
 
@@ -47,6 +47,6 @@ ServerScope é uma ferramenta de monitoramento em tempo real que exibe o uso de 
    docker run -it servercope
 
 ## Rodando a aplicação
-Após rodar sua aplicação, seja usando Go ou Docker, deve ser exibido o painel de informações do servido, como mostra a imagem abaixo:
+Após rodar sua aplicação, seja usando Go ou Docker, deve ser exibido o painel de informações do servidor, como mostra a imagem abaixo:
 
 ![image](https://github.com/rauzerfabiano/ServerScope/assets/60713792/8857de06-47c8-4f7e-a35e-f8b15a1cd9ba)
