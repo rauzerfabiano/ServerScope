@@ -10,7 +10,6 @@ import (
 	"github.com/shirou/gopsutil/net"
 	"github.com/gizak/termui/v3"
 	"github.com/gizak/termui/v3/widgets"
-	"log"
 )
 
 type ServerStats struct {
@@ -92,14 +91,8 @@ func drawDashboard() {
 				return
 			}
 		case <-ticker:
-			stats := getServerStats()
-			storeStats(stats)
-			cpuGauge.Percent = int(stats.CPUPercent)
-			memoryGauge.Percent = int(stats.MemoryPercent)
-			diskGauge.Percent = int(stats.DiskPercent)
-			termui.Render(cpuGauge, memoryGauge, diskGauge)
-			stats := getServerStats()
-			storeStats(*stats)
+			stats := getServerStats() // Coleta as estatísticas
+			storeStats(*stats)        // Armazena as estatísticas
 			cpuGauge.Percent = int(stats.CPUPercent)
 			memoryGauge.Percent = int(stats.MemoryPercent)
 			diskGauge.Percent = int(stats.DiskPercent)
