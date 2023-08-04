@@ -10,6 +10,7 @@ import (
 	"github.com/shirou/gopsutil/net"
 	"github.com/gizak/termui/v3"
 	"github.com/gizak/termui/v3/widgets"
+	"log"
 )
 
 type ServerStats struct {
@@ -24,22 +25,30 @@ type ServerStats struct {
 var serverStatsHistory []ServerStats
 const maxHistorySize = 60 // Mantendo os últimos 60 pontos de dados
 
-func getServerStats() ServerStats {
-	stats := ServerStats{}
+func getServerStats() *ServerStats {
+	stats := &ServerStats{}
 	stats.Time = time.Now()
 
-	cpuPercent, _ := cpu.Percent(time.Millisecond*200, false)
-	stats.CPUPercent = cpuPercent[0]
+	cpuPercent, err := cpu.Percent(time.Millisecond*200, false)
+	if err == nil {
+		stats.CPUPercent = cpuPercent[0]
+	}
 
-	memory, _ := mem.VirtualMemory()
-	stats.MemoryPercent = memory.UsedPercent
+	memory, err := mem.VirtualMemory()
+	if err == nil {
+		stats.MemoryPercent = memory.UsedPercent
+	}
 
-	diskUsage, _ := disk.Usage("/")
-	stats.DiskPercent = diskUsage.UsedPercent
+	diskUsage, err := disk.Usage("/")
+	if err == nil {
+		stats.DiskPercent = diskUsage.UsedPercent
+	}
 
-	network, _ := net.IOCounters(false)
-	stats.BytesSent = network[0].BytesSent
-	stats.BytesRecv = network[0].BytesRecv
+	network, err := net.IOCounters(false)
+	if err == nil {
+		stats.BytesSent = network[0].BytesSent
+		stats.BytesRecv = network[0].BytesRecv
+	}
 
 	return stats
 }
@@ -67,6 +76,11 @@ func drawDashboard() {
 	cpuGauge.SetRect(0, 0, 50, 5)
 	memoryGauge.SetRect(0, 5, 50, 10)
 	diskGauge.SetRect(0, 10, 50, 15)
+	networkBar := widgets.NewBarChart()
+	networkBar.Title = "Network Traffic"
+	networkBar.SetRect(0, 15, 50, 20)
+	networkDataSent := make([]float64, maxHistorySize)
+	networkDataRecv := make([]float64, maxHistorySize)
 
 	uiEvents := termui.PollEvents()
 	ticker := time.NewTicker(time.Second).C
@@ -84,6 +98,16 @@ func drawDashboard() {
 			memoryGauge.Percent = int(stats.MemoryPercent)
 			diskGauge.Percent = int(stats.DiskPercent)
 			termui.Render(cpuGauge, memoryGauge, diskGauge)
+			stats := getServerStats()
+			storeStats(*stats)
+			cpuGauge.Percent = int(stats.CPUPercent)
+			memoryGauge.Percent = int(stats.MemoryPercent)
+			diskGauge.Percent = int(stats.DiskPercent)
+			networkDataSent = append(networkDataSent[1:], float64(stats.BytesSent))
+			networkDataRecv = append(networkDataRecv[1:], float64(stats.BytesRecv))
+			networkBar.Data = append(networkDataSent, networkDataRecv...)
+			networkBar.Labels = []string{"Sent", "Received"}
+			termui.Render(cpuGauge, memoryGauge, diskGauge, networkBar)
 		}
 	}
 }
