@@ -21,11 +21,11 @@ ServerScope é uma ferramenta de monitoramento em tempo real que exibe o uso de 
 
 3. Instale as dependências:
    ```bash
-   - go get github.com/gizak/termui/v3
-   - go get github.com/shirou/gopsutil/v3/cpu
-   - go get github.com/shirou/gopsutil/v3/mem
-   - go get github.com/shirou/gopsutil/v3/disk
-   - go get github.com/shirou/gopsutil/v3/net
+   go get github.com/gizak/termui/v3
+   go get github.com/shirou/gopsutil/v3/cpu
+   go get github.com/shirou/gopsutil/v3/mem
+   go get github.com/shirou/gopsutil/v3/disk
+   go get github.com/shirou/gopsutil/v3/net
 
 4. Execute o projeto:
    ```bash
