@@ -19,6 +19,7 @@ type ServerStats struct {
 	DiskPercent   float64
 	BytesSent     uint64
 	BytesRecv     uint64
+	SwapPercent   float64
 }
 
 var serverStatsHistory []ServerStats
@@ -49,6 +50,11 @@ func getServerStats() *ServerStats {
 		stats.BytesRecv = network[0].BytesRecv
 	}
 
+	swap, err := mem.SwapMemory()
+    if err == nil {
+        stats.SwapPercent = swap.UsedPercent
+    }
+
 	return stats
 }
 
@@ -69,17 +75,25 @@ func drawDashboard() {
 	cpuGauge := widgets.NewGauge()
 	memoryGauge := widgets.NewGauge()
 	diskGauge := widgets.NewGauge()
+	swapGauge := widgets.NewGauge()
+	networkBar := widgets.NewBarChart()
+	
 	cpuGauge.Title = "CPU Usage"
 	memoryGauge.Title = "Memory Usage"
 	diskGauge.Title = "Disk Usage"
+    swapGauge.Title = "Swap Usage"
+	
 	cpuGauge.SetRect(0, 0, 50, 5)
 	memoryGauge.SetRect(0, 5, 50, 10)
 	diskGauge.SetRect(0, 10, 50, 15)
-	networkBar := widgets.NewBarChart()
-	networkBar.Title = "Network Traffic"
+    swapGauge.SetRect(0, 15, 50, 20)
 	networkBar.SetRect(0, 15, 50, 20)
+	
+	networkBar.Title = "Network Traffic"
 	networkDataSent := make([]float64, maxHistorySize)
 	networkDataRecv := make([]float64, maxHistorySize)
+
+	
 
 	uiEvents := termui.PollEvents()
 	ticker := time.NewTicker(time.Second).C
@@ -96,11 +110,13 @@ func drawDashboard() {
 			cpuGauge.Percent = int(stats.CPUPercent)
 			memoryGauge.Percent = int(stats.MemoryPercent)
 			diskGauge.Percent = int(stats.DiskPercent)
+			swapGauge.Percent = int(stats.SwapPercent)
 			networkDataSent = append(networkDataSent[1:], float64(stats.BytesSent))
 			networkDataRecv = append(networkDataRecv[1:], float64(stats.BytesRecv))
 			networkBar.Data = append(networkDataSent, networkDataRecv...)
 			networkBar.Labels = []string{"Sent", "Received"}
-			termui.Render(cpuGauge, memoryGauge, diskGauge, networkBar)
+			termui.Render(cpuGauge, memoryGauge, diskGauge, swapGauge, networkBar)
+
 		}
 	}
 }
