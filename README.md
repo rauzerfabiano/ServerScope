@@ -4,7 +4,7 @@ ServerScope é uma ferramenta de monitoramento em tempo real que exibe o uso de 
 
 ## Requisitos
 
-- Go 1.16 ou superior
+- Go 1.13 ou superior
 - Docker (opcional para execução em contêiner)
 
 ## Instalação
